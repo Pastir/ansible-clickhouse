@@ -1,0 +1,9 @@
+- name: Include OS-specific variables.
+  include_vars: "vars/{{ ansible_distribution }}.yml"
+
+# Uninstal clickhouse tasks
+- include_tasks: "{{ ansible_distribution }}.yml"
+  when: clickhouse_uninstall | default(__clickhouse_uninstall) | bool
+
+# Install clickhouse tasks
+- include_tasks: "{{ ansible_distribution }}.yml"

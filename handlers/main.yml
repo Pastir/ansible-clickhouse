@@ -1,0 +1,12 @@
+# handlers file for clickhouse
+- name: restart_clickhouse_server
+  ansible.builtin.systemd:
+    name: clickhouse-server
+    state: restarted
+
+- name: start_clickhouse_server
+  ansible.builtin.systemd:
+    name: clickhouse-server
+    enabled: true
+    state: started
+

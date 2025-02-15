@@ -1,0 +1,48 @@
+# Main installation actions
+# https://clickhouse.com/docs/en/getting-started/#installation
+
+- name: Apt-key add repo key
+  ansible.builtin.apt_key:
+    keyserver: "{{ clickhouse_repo_keyserver | default(__clickhouse_repo_keyserver) }}"
+    id: "{{ clickhouse_repo_key | default(__clickhouse_repo_key) }}"
+  become: true
+
+- name:  Add clickhouse repo
+  ansible.builtin.apt_repository:
+    repo: "{{ clickhouse_repo | default(__clickhouse_repo) }}"
+    state: present
+  become: true
+
+- name: Package installation selected version
+  ansible.builtin.apt:
+    name: "{{ (clickhouse_packages | default(__clickhouse_packages)) | map('regex_replace', '$', '=' + (clickhouse_version | default(__clickhouse_version)) ) | list }}"
+    state: present
+    update_cache: true
+  become: true
+  when: clickhouse_version != 'latest'
+
+- name: Package installation latest version
+  ansible.builtin.apt:
+    name: "{{ clickhouse_packages | default(__clickhouse_packages) }}"
+    state: "{{ clickhouse_version | default(__clickhouse_version) }}"
+    update_cache: true
+  become: true
+  when: clickhouse_version == 'latest'
+
+- name: Hold specified version
+  become: true
+  ansible.builtin.copy:
+    dest: "/etc/apt/preferences.d/fixed-{{ item }}"
+    content: |
+      Package: {{ item }}
+      Pin: release a=now
+      Pin-Priority: 1001
+  loop: "{{ clickhouse_packages | default(__clickhouse_packages) }}"
+
+- name: Ensure ClickHouse service is enabled and running
+  systemd:
+    name: clickhouse-server
+    state: started
+    enabled: true
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"
