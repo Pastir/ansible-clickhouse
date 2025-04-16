@@ -45,4 +45,6 @@
     state: started
     enabled: true
     daemon_reload: true
-  when: ansible_service_mgr == "systemd"
+fix   when:
+    - ansible_service_mgr == "systemd"
+    - "'clickhouse-server' in clickhouse_packages"
