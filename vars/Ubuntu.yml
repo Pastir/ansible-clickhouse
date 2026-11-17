@@ -3,6 +3,11 @@ __clickhouse_version: "latest"
 __clickhouse_repo: "deb https://packages.clickhouse.com/deb stable main"
 __clickhouse_repo_keyserver: keyserver.ubuntu.com
 __clickhouse_repo_key: 8919F6BD2B48D754
+# true — ключ через keyring + signed-by (нужно там, где нет apt-key: Ubuntu 26.04+)
+__clickhouse_repo_keyring: false
+__clickhouse_repo_key_url: "https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key"
+__clickhouse_keyring_file: /usr/share/keyrings/clickhouse-keyring.asc
+__clickhouse_repo_signed: "deb [signed-by={{ __clickhouse_keyring_file }}] https://packages.clickhouse.com/deb stable main"
 __clickhouse_packages:
   - clickhouse-common-static
   - clickhouse-server

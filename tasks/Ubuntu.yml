@@ -6,10 +6,20 @@
     keyserver: "{{ clickhouse_repo_keyserver | default(__clickhouse_repo_keyserver) }}"
     id: "{{ clickhouse_repo_key | default(__clickhouse_repo_key) }}"
   become: true
+  when: not (clickhouse_repo_keyring | default(__clickhouse_repo_keyring))
+
+# Ubuntu 26.04+: apt-key нет — ключ в /usr/share/keyrings, репозиторий с signed-by
+- name: Download repo key to keyring
+  ansible.builtin.get_url:
+    url: "{{ clickhouse_repo_key_url | default(__clickhouse_repo_key_url) }}"
+    dest: "{{ __clickhouse_keyring_file }}"
+    mode: '0644'
+  become: true
+  when: clickhouse_repo_keyring | default(__clickhouse_repo_keyring)
 
 - name:  Add clickhouse repo
   ansible.builtin.apt_repository:
-    repo: "{{ clickhouse_repo | default(__clickhouse_repo) }}"
+    repo: "{{ (clickhouse_repo_keyring | default(__clickhouse_repo_keyring)) | ternary(__clickhouse_repo_signed, clickhouse_repo | default(__clickhouse_repo)) }}"
     state: present
   become: true
 
@@ -45,6 +55,6 @@
     state: started
     enabled: true
     daemon_reload: true
-fix   when:
+  when:
     - ansible_service_mgr == "systemd"
-    - "'clickhouse-server' in clickhouse_packages"
+    - "'clickhouse-server' in (clickhouse_packages | default(__clickhouse_packages))"
